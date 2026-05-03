@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  # ── Frontend (Vite build served by nginx) ──
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - scraper
+    restart: unless-stopped
+
+  # ── Scraper API (Express + Cheerio + SQLite) ──
+  scraper:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - scraper-data:/app/data
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # ── Cron (scheduled scraping every 6 hours) ──
+  cron:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    command: ["node", "scripts/cron.js"]
+    volumes:
+      - scraper-data:/app/data
+    depends_on:
+      - scraper
+    restart: unless-stopped
+
+volumes:
+  scraper-data:

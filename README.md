@@ -1,184 +1,90 @@
-# 🇿🇦 PC Builder ZA
+# PC Builder ZA 🇿🇦
 
-A South African PC part picker with instant search, compatibility checking, and links to local retailers (Evetech, Wootware, Dreamware, Titan Ice). All prices in ZAR including VAT.
+A South African PC parts picker with a chalkboard/whiteboard aesthetic, real-time compatibility filtering, search-first UX, and links to local retailers.
 
-Supports AM4, AM5, Intel 12th/13th/14th Gen, DDR4/DDR5, and 60+ components.
+![Chalkboard Mode](https://img.shields.io/badge/theme-chalkboard-2a3a2a) ![Whiteboard Mode](https://img.shields.io/badge/theme-whiteboard-f3f1ec)
 
----
+## Features
+
+- **Search-first UX** — Prominent search bar as the hero element. Type any part name, spec, platform, or keyword. Keyboard navigation with `↑↓ Enter`, `/` to focus, `Esc` to close.
+- **Compatibility filtering** — Incompatible parts are automatically hidden (not just dimmed). Pick a CPU and only matching motherboards, RAM types, and PSU wattages appear.
+- **ZAR pricing** — All prices in South African Rand, inclusive of 15% VAT.
+- **Local retailer links** — Every selected part links to search pages on Evetech, Wootware, Dreamware, and Titan Ice.
+- **Dual theme** — Chalkboard (dark green with chalk textures) and Whiteboard (light with grid lines). Toggle anytime.
+- **60+ components** — CPUs (AM4 Ryzen 5000, AM5 Ryzen 7000, Intel 12th/13th/14th Gen), GPUs, Motherboards, RAM (DDR4 & DDR5), Storage, PSUs, Cases, Coolers.
+- **Preset builds** — Budget AM4 (~R14k), Sweet Spot (~R25k), Intel Mid (~R28k), Ultra (~R80k+).
+- **Collapsible categories** — Parts collapsed by default; discovery via search. Auto-expands when you select a part.
 
 ## Quick Start
 
 ```bash
-# 1. Clone
-git clone https://github.com/YOUR_USERNAME/pc-builder-za.git
-cd pc-builder-za
-
-# 2. Install
+# Install dependencies
 npm install
 
-# 3. Run dev server (opens http://localhost:3000)
+# Start dev server
 npm run dev
+
+# Build for production
+npm run build
 ```
 
-That's it. Open `http://localhost:3000` and start building.
+## Tech Stack
 
----
-
-## Scripts
-
-| Command                | What it does                          |
-|------------------------|---------------------------------------|
-| `npm run dev`          | Start dev server with hot reload      |
-| `npm run build`        | Production build → `dist/`            |
-| `npm run preview`      | Preview production build locally      |
-| `npm test`             | Run tests once                        |
-| `npm run test:watch`   | Run tests in watch mode               |
-| `npm run test:coverage`| Run tests with coverage report        |
-| `npm run lint`         | Lint with ESLint                      |
-
----
+- **React 18** + **Vite 5**
+- Zero external UI dependencies — all styling is inline
+- Google Fonts: Caveat, Patrick Hand, Indie Flower
+- No build-time CSS — works out of the box
 
 ## Project Structure
 
 ```
 pc-builder-za/
-├── .github/
-│   └── workflows/
-│       └── ci.yml              # GitHub Actions CI/CD pipeline
-├── public/                     # Static assets
+├── index.html          # Entry HTML
+├── package.json        # Dependencies & scripts
+├── vite.config.js      # Vite configuration
 ├── src/
-│   ├── main.jsx                # React entry point
-│   ├── App.jsx                 # Main PC Builder component
-│   └── test/
-│       ├── setup.js            # Test setup
-│       └── app.test.js         # Unit tests
-├── .eslintrc.json              # ESLint config
-├── .gitignore
-├── Dockerfile                  # Docker build (nginx)
-├── nginx.conf                  # Nginx SPA config
-├── netlify.toml                # Netlify deploy config
-├── vite.config.js              # Vite config
-├── package.json
+│   ├── main.jsx        # React entry point + global styles
+│   └── App.jsx         # Full app (single component)
 └── README.md
 ```
 
----
+## Retailers
 
-## CI/CD Pipeline
+| Retailer | URL |
+|----------|-----|
+| Evetech | [evetech.co.za](https://www.evetech.co.za) |
+| Wootware | [wootware.co.za](https://www.wootware.co.za) |
+| Dreamware | [dreamwaretech.co.za](https://dreamwaretech.co.za) |
+| Titan Ice | [titanice.co.za](https://www.titanice.co.za) |
 
-### GitHub Actions (`.github/workflows/ci.yml`)
+## Compatibility Rules
 
-Triggers on every push to `main`/`develop` and on pull requests to `main`.
+The app filters out incompatible parts based on your current selections:
 
-**Pipeline stages:**
+- **CPU ↔ Motherboard**: Socket match (AM4, AM5, LGA1700)
+- **Motherboard ↔ RAM**: DDR type match (DDR4 vs DDR5)
+- **AM4 + DDR5**: Blocked (AM4 only supports DDR4)
+- **GPU + CPU → PSU**: Estimates total wattage and hides underpowered PSUs
 
-```
-Push / PR
-  │
-  ├─ ① Test ──────── npm ci → npm test → coverage report
-  │
-  ├─ ② Build ─────── npm ci → npm run build → upload artifact
-  │
-  └─ ③ Deploy ────── GitHub Pages (main branch only)
-```
+## Extending
 
-### Setup GitHub Pages deployment:
-
-1. Push to GitHub:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git remote add origin https://github.com/YOUR_USERNAME/pc-builder-za.git
-   git push -u origin main
-   ```
-
-2. Go to **Settings → Pages → Source** → set to **GitHub Actions**
-
-3. Every push to `main` will auto-deploy to:
-   `https://YOUR_USERNAME.github.io/pc-builder-za/`
-
-   > If using a subpath, add `base: '/pc-builder-za/'` to `vite.config.js`
-
----
-
-## Alternative Deployment Options
-
-### Netlify (one-click)
-
-1. Connect your GitHub repo at [netlify.com](https://netlify.com)
-2. Config is already in `netlify.toml` — auto-detected
-3. Every push deploys automatically
-
-### Vercel
-
-```bash
-npm i -g vercel
-vercel
-```
-
-Vercel auto-detects Vite. Zero config needed.
-
-### Docker
-
-```bash
-# Build
-docker build -t pc-builder-za .
-
-# Run on port 8080
-docker run -p 8080:80 pc-builder-za
-
-# Open http://localhost:8080
-```
-
-### VPS / Manual Deploy
-
-```bash
-npm run build
-# Upload the `dist/` folder to any static host
-# (Apache, Nginx, Caddy, S3, etc.)
-```
-
----
-
-## Adding/Editing Parts
-
-All parts live in the `PARTS` array in `src/App.jsx`. Each category has this shape:
-
+### Adding parts
+Add entries to the `PARTS` array in `src/App.jsx`. Each pick needs:
 ```js
-{
-  id: "cpu",              // category key
-  label: "Processor",     // display name
-  doodle: "⚙",           // icon
-  picks: [
-    {
-      id: "r5-5600x",                    // unique ID
-      name: "AMD Ryzen 5 5600X",         // display name (also used for retailer search)
-      price: 2999,                       // ZAR incl VAT
-      note: "6C/12T · 3.7GHz · legend",  // short description
-      socket: "AM4",                     // for compatibility checks
-      plat: "AM4",                       // platform badge
-      tags: "amd ryzen gaming popular",  // search keywords
-    },
-  ],
-}
+{ id: "unique-id", name: "Display Name", price: 3999, note: "short desc", tags: "search keywords" }
 ```
+Category-specific fields: `socket`, `plat`, `tdp` (CPU), `watt` (GPU/PSU), `ram` (Motherboard), `type` (RAM).
 
-The search engine indexes `name`, `note`, `tags`, `socket`, `plat`, `type`, and the category `label` — so make tags descriptive.
-
----
-
-## Tech Stack
-
-- **React 18** — UI framework
-- **Vite 5** — Dev server & bundler
-- **Vitest** — Unit testing
-- **ESLint** — Linting
-- **GitHub Actions** — CI/CD
-- **Nginx** — Production Docker image
-
----
+### Adding retailers
+Add to the `RETAILERS` object:
+```js
+newshop: { name: "Shop Name", url: "https://...", color: "#hex", search: "https://...?q=" }
+```
 
 ## License
 
-MIT — do whatever you want with it.
+MIT
+
+---
+
+*Made for Mzansi 🇿🇦 — prices are estimates, always confirm at the retailer.*
