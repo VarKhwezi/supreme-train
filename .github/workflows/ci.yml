@@ -1,32 +1,59 @@
-  # ── Deploy to GitHub Pages (main branch only) ──
-  deploy:
-    name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
     runs-on: ubuntu-latest
-    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check source exists
+        run: |
+          if [ ! -f src/index.html ]; then
+            echo "::error::src/index.html not found"
+            exit 1
+          fi
+          echo "✓ src/index.html exists ($(wc -c < src/index.html) bytes)"
+
+      - name: Validate HTML structure
+        run: bash scripts/validate.sh
+
+  deploy:
+    name: Deploy
+    needs: validate
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
+      - uses: actions/checkout@v4
 
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v4
+        with:
+          enablement: true
 
-      - name: Upload to GitHub Pages
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/
+          path: src
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
