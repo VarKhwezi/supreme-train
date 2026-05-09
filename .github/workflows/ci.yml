@@ -16,43 +16,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate:
-    name: Validate
+  build:
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check source exists
-        run: |
-          if [ ! -f src/index.html ]; then
-            echo "::error::src/index.html not found"
-            exit 1
-          fi
-          echo "✓ src/index.html exists ($(wc -c < src/index.html) bytes)"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-      - name: Validate HTML structure
-        run: bash scripts/validate.sh
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
 
   deploy:
     name: Deploy
-    needs: validate
+    needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:
           enablement: true
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: src
 
       - name: Deploy to GitHub Pages
         id: deployment
